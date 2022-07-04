@@ -5,6 +5,7 @@ use std::fmt::{Formatter, write};
 use wasm_bindgen::prelude::*;
 use crate::Cell::{Alive, Dead};
 use rand::prelude::*;
+use fixedbitset::FixedBitSet;
 
 
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
@@ -25,112 +26,109 @@ pub enum Cell {
 pub struct Universe {
     width: u32,
     height: u32,
-    cells: Vec<Cell>,
+    cells: FixedBitSet,
 }
 
 #[wasm_bindgen]
 impl Universe {
     pub fn new() -> Universe {
-        let width = 64;
-        let height = 64;
-        let cells = (0..width * height)
-            .map(|i| {
-                if i % 2 == 0 || i % 7 == 0 {
-                    Cell::Alive
-                } else {
-                    Cell::Dead
-                }
-            })
-            .collect();
+        let width: u32 = 64;
+        let height: u32 = 64;
+        let size = (width * height) as usize;
+        let mut bits = FixedBitSet::with_capacity(size);
+
+        for i in 0..size {
+            bits.set(i, i % 2 == 0 || i % 7 == 0);
+        }
 
         Universe {
             width,
             height,
-            cells,
+            cells: bits,
         }
     }
 
-    pub fn new_random() -> Universe {
-        let width = 64;
-        let height = 64;
-        let cells = (0..width * height)
-            .map(|i| {
-                if random::<bool>() {
-                    Alive
-                } else {
-                    Dead
-                }
-            })
-            .collect();
-
-        Universe {
-            width,
-            height,
-            cells,
-        }
-    }
-
-    pub fn new_spaceship() -> Universe {
-        let width = 64;
-        let height = 64;
-        /** spaceship:
-                    01001
-                    10000
-                    10001
-                    11110
-
-         */
-
-        let row_size = width as usize;
-
-        let offset: usize = 64 * 4 + 30;
-
-        let mut spaceship = vec![Dead; 64 * 64];
-        spaceship[offset + 1] = Alive;
-        spaceship[offset + 4] = Alive;
-        spaceship[offset + row_size * 1] = Alive;
-        spaceship[offset + row_size * 2] = Alive;
-        spaceship[offset + row_size * 2 + 4] = Alive;
-        spaceship[offset + row_size * 3 + 0] = Alive;
-        spaceship[offset + row_size * 3 + 1] = Alive;
-        spaceship[offset + row_size * 3 + 2] = Alive;
-        spaceship[offset + row_size * 3 + 3] = Alive;
-
-        Universe {
-            width,
-            height,
-            cells: spaceship,
-        }
-    }
-
-    pub fn new_glider() -> Universe {
-        let width = 64;
-        let height = 64;
-        /** spaceship:
-                           01001
-                           10000
-                           10001
-                           11110
-
-         */
-
-        let row_size = width as usize;
-
-        let offset: usize = 64 * 4 + 30;
-
-        let mut spaceship = vec![Dead; 64 * 64];
-        spaceship[offset + 1] = Alive;
-        spaceship[offset + row_size * 1 + 2] = Alive;
-        spaceship[offset + row_size * 2 + 0] = Alive;
-        spaceship[offset + row_size * 2 + 1] = Alive;
-        spaceship[offset + row_size * 2 + 2] = Alive;
-
-        Universe {
-            width,
-            height,
-            cells: spaceship,
-        }
-    }
+    // pub fn new_random() -> Universe {
+    //     let width = 64;
+    //     let height = 64;
+    //     let cells = (0..width * height)
+    //         .map(|i| {
+    //             if random::<bool>() {
+    //                 Alive
+    //             } else {
+    //                 Dead
+    //             }
+    //         })
+    //         .collect();
+    //
+    //     Universe {
+    //         width,
+    //         height,
+    //         cells,
+    //     }
+    // }
+    //
+    // pub fn new_spaceship() -> Universe {
+    //     let width = 64;
+    //     let height = 64;
+    //     /** spaceship:
+    //                 01001
+    //                 10000
+    //                 10001
+    //                 11110
+    //
+    //      */
+    //
+    //     let row_size = width as usize;
+    //
+    //     let offset: usize = 64 * 4 + 30;
+    //
+    //     let mut spaceship = vec![Dead; 64 * 64];
+    //     spaceship[offset + 1] = Alive;
+    //     spaceship[offset + 4] = Alive;
+    //     spaceship[offset + row_size * 1] = Alive;
+    //     spaceship[offset + row_size * 2] = Alive;
+    //     spaceship[offset + row_size * 2 + 4] = Alive;
+    //     spaceship[offset + row_size * 3 + 0] = Alive;
+    //     spaceship[offset + row_size * 3 + 1] = Alive;
+    //     spaceship[offset + row_size * 3 + 2] = Alive;
+    //     spaceship[offset + row_size * 3 + 3] = Alive;
+    //
+    //     Universe {
+    //         width,
+    //         height,
+    //         cells: spaceship,
+    //     }
+    // }
+    //
+    // pub fn new_glider() -> Universe {
+    //     let width = 64;
+    //     let height = 64;
+    //     /** spaceship:
+    //                        01001
+    //                        10000
+    //                        10001
+    //                        11110
+    //
+    //      */
+    //
+    //     let row_size = width as usize;
+    //
+    //     let offset: usize = 64 * 4 + 30;
+    //
+    //     let mut spaceship = vec![Dead; 64 * 64];
+    //     spaceship[offset + 1] = Alive;
+    //     spaceship[offset + row_size * 1 + 2] = Alive;
+    //     spaceship[offset + row_size * 2 + 0] = Alive;
+    //     spaceship[offset + row_size * 2 + 1] = Alive;
+    //     spaceship[offset + row_size * 2 + 2] = Alive;
+    //
+    //     Universe {
+    //         width,
+    //         height,
+    //         cells: spaceship,
+    //     }
+    // }
 
     pub fn render(&self) -> String {
         self.to_string()
@@ -151,7 +149,11 @@ impl Universe {
                 let neighbor_row = (row + d_row) % self.height;
                 let neighbor_col = (column + d_column) % self.height;
                 let idx = self.get_index(neighbor_row, neighbor_col);
-                count += self.cells[idx] as u8;
+                count += if self.cells[idx] {
+                    1
+                } else {
+                    0
+                }
             }
         }
         count
@@ -169,17 +171,17 @@ impl Universe {
 
                 let next_cell = match (cell, live_neighbors) {
                     //Case 1: Alive, < 2 neighbors, ded
-                    (Cell::Alive, x) if x < 2 => Dead,
+                    (true, x) if x < 2 => false,
                     //Case 2: Alive,  2-3 neighbors. survive
-                    (Cell::Alive, 2) | (Cell::Alive, 3) => Cell::Alive,
+                    (true, 2) | (true, 3) => true,
                     //Case 3: Alive,  > 3 neighbors, ded
-                    (Cell::Alive, x) if x > 3 => Cell::Dead,
+                    (true, x) if x > 3 => false,
                     //Case 4: Dead, 3 neighbors, alive
-                    (Cell::Dead, 3) => Cell::Alive,
+                    (false, 3) => true,
                     //else, stay same
                     (otherwise, _) => otherwise,
                 };
-                next[idx] = next_cell;
+                next.set(idx, next_cell);
             }
         }
         self.cells = next;
@@ -193,8 +195,8 @@ impl Universe {
         self.height
     }
 
-    pub fn cells(&self) -> *const Cell {
-        self.cells.as_ptr()
+    pub fn cells(&self) -> *const u32 {
+        self.cells.as_slice().as_ptr()
     }
 }
 
@@ -202,7 +204,7 @@ impl fmt::Display for Universe {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         for line in self.cells.as_slice().chunks(self.width as usize) {
             for &cell in line {
-                let symbol = if cell == Cell::Dead { '◻' } else { '◼' };
+                let symbol = if cell == 0 { '◻' } else { '◼' };
                 write!(f, "{}", symbol)?;
             }
             write!(f, "\n")?;
